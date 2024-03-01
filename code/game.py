@@ -58,7 +58,6 @@ class Game(Component):
                 self.tetromino.move_horizontal(1)
                 self.timers['horizontal move'].activate()
 
-
     def run(self):
 
         self.timer_update()
@@ -80,13 +79,24 @@ class Tetromino():
         #store as shape a list
         self.block = [Block(group, pos, self.color) for pos in self.block_position]
     
+    def horizontal_collision_handler(self, blocks, amount):
+        collision_list = [blocks.horizontal_collide(int(blocks.pos.x + amount)) for  blocks in self.block]
+        return True if any(collision_list) else False
+
+    def vertical_collision_handler(self, blocks, amount):
+        collision_list = [blocks.vertical_collide(int(blocks.pos.y + amount)) for  blocks in self.block]
+        return True if any(collision_list) else False
+
+
     def move_down(self):
-        for block in self.block:
-            block.pos.y += 1
+        if not self.vertical_collision_handler(self.block, 1):
+            for block in self.block:
+                block.pos.y += 1
 
     def move_horizontal(self, amount):
-        for block in self.block:
-            block.pos.x += amount
+        if not self.horizontal_collision_handler(self.block, amount):
+            for block in self.block:
+                block.pos.x += amount
 
 
 class Block(pygame.sprite.Sprite):
@@ -101,6 +111,14 @@ class Block(pygame.sprite.Sprite):
         x = self.pos.x * CELL_SIZE
         y = self.pos.y * CELL_SIZE
         self.rect = self.image.get_rect(topleft = (x,y))
+
+    def horizontal_collide(self, x):
+        if not 0 <= x < COLUMNS:
+            return True
+
+    def vertical_collide(self, y):
+        if not y < ROWS:
+            return True
 
     def update(self):
         self.rect.topleft = self.pos * CELL_SIZE
