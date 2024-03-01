@@ -1,6 +1,7 @@
 from settings import *
 from component import Component
 from random import choice
+from timer import Timer
 
 class Game(Component):
     def __init__(self):
@@ -20,9 +21,20 @@ class Game(Component):
         
         #create a Tetromino
         self.tetromino = Tetromino(choice(list(TETROMINOS.keys())), group=self.sprites)
-    
 
+        #timer
+        self.timers = {
+            'vertical move': Timer(UPDATE_START_SPEED, True, self.move_down)
+        }
 
+        self.timers["vertical move"].activate()
+
+    def timer_update(self):
+        for timer in self.timers.values():
+            timer.update()
+
+    def move_down(self):
+        self.tetromino.move_down()
 
     def draw_grid(self):
         for col in range(1, COLUMNS):
@@ -37,6 +49,9 @@ class Game(Component):
     
 
     def run(self):
+
+        self.timer_update()
+        self.sprites.update()
         self.surface.fill(GRAY)
         self.sprites.draw(self.surface)
         self.draw_grid()
@@ -51,6 +66,10 @@ class Tetromino():
 
         #store as shape a list
         self.block = [Block(group, pos, self.color) for pos in self.block_position]
+    
+    def move_down(self):
+        for block in self.block:
+            block.pos.y += 1
 
 
 class Block(pygame.sprite.Sprite):
@@ -65,3 +84,7 @@ class Block(pygame.sprite.Sprite):
         x = self.pos.x * CELL_SIZE
         y = self.pos.y * CELL_SIZE
         self.rect = self.image.get_rect(topleft = (x,y))
+
+    def update(self):
+        self.rect.topleft = self.pos * CELL_SIZE
+
